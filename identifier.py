@@ -1,5 +1,3 @@
-
-
 def features(sequence, i):
     yield "word: " + sequence[i].lower()
     yield "pWord: "+ sequence[i-1].lower()
@@ -30,7 +28,7 @@ wordsNTags = list(zip(X_test,y_pred));
 
 my_numbers = []
 my_words = []
-
+prevNum = 0
 
 with open('eval.txt','r') as f:
     for line in f:
@@ -41,7 +39,12 @@ with open('eval.txt','r') as f:
             
 with open('output.txt', 'w') as f:            
     for number,word,tag in zip(my_numbers,my_words,y_pred):
-        f.write("{}	{}	{}\n".format(number,word,tag))
+        if prevNum < int(number):
+            f.write("{}	{}	{}\n".format(number,word,tag))
+            prevNum = int(number)
+        else:
+            f.write("\n")
+            prevNum = int(number)
 
 
 
