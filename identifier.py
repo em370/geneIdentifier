@@ -4,6 +4,19 @@ from sklearn.naive_bayes import MultinomialNB
 
 sequence_to_pos_tags = {}
 
+
+
+def test2Conll(filename):
+	with open(filename,'r') as input:
+		with open('Conll'+filename, 'w') as output:  
+			for line in input:
+				words = line.split()
+				if len(words)>0:
+					output.write("{}	{}	{}\n".format(words[0],words[1],"F"))
+				else:
+					output.write("\n");
+	return 'Conll'+filename
+
 def parse_word_from_component(component):
     return component.split("\t")[1]
 
@@ -39,12 +52,12 @@ def features(sequence, i):
     word = parse_word_from_component(sequence[i].lower())
     yield "word=" + word
     yield "al=" + str(word.isalpha())
-    #if sequence[i].isupper():
-    #    yield "Case= Upper"
-    #elif sequence[i].islower():
-    #    yield "Case= Lower"
-    #else:
-    #    yield "Case= Mix"
+    if sequence[i].isupper():
+        yield "Case= Upper"
+    elif sequence[i].islower():
+        yield "Case= Lower"
+    else:
+        yield "Case= Mix"
     if sequence in sequence_to_pos_tags:
         pos_tags = sequence_to_pos_tags[sequence]
         pos = pos_tags[i][1]
@@ -78,17 +91,31 @@ def features(sequence, i):
         
 import os
 from seqlearn.datasets import load_conll
-X_train, y_train, lengths_train = load_conll("train.txt", features)
+
+testFile = "test-run-test.txt"
+testFileAnswers = "test-run-test-with-keys.txt"
+trainFile = "gene-trainF18.txt"#"train.txt"
+notConll = 1 #set this to 1 if the test file doesn't containt tags
+
+if notConll == 1:
+	conllFile = test2Conll(testFile)	
+else:
+	conllFile = inputFile	
+	
+	
+X_train, y_train, lengths_train = load_conll(trainFile, features)  #train.txt
 #print(X_train[1])
 from seqlearn.perceptron import StructuredPerceptron
 clf = StructuredPerceptron()
 clf.fit(X_train, y_train, lengths_train)
 
-X_test, y_test, lengths_test = load_conll("eval.txt", features)
+X_test, y_test, lengths_test = load_conll(conllFile, features) #eval.txt
+X_ans, y_ans, lengths_ans = load_conll(testFileAnswers, features)
+
 from seqlearn.evaluation import bio_f_score
 y_pred = clf.predict(X_test, lengths_test)
 
-print(bio_f_score(y_test, y_pred))
+print(bio_f_score(y_ans, y_pred))
 wordsNTags = list(zip(X_test,y_pred));
 #print(list(zip(X_train,y_pred)))
 
@@ -97,7 +124,7 @@ my_numbers = []
 my_words = []
 prevNum = 0
 
-with open('eval.txt','r') as f:
+with open(testFile,'r') as f:
     for line in f:
         words = line.split()
         if len(words)>0:
@@ -116,4 +143,9 @@ with open('output.txt', 'w') as f:
 
 print(bio_f_score(y_test, y_pred))
 
-os.system("python evalNER.py eval.txt output.txt")
+os.system("python evalNER.py "+testFileAnswers+ " output.txt")
+
+
+
+	
+
