@@ -1,7 +1,10 @@
 import nltk
 from sklearn.linear_model import PassiveAggressiveClassifier
 from sklearn.naive_bayes import MultinomialNB
-
+import os
+from seqlearn.datasets import load_conll
+from seqlearn.perceptron import StructuredPerceptron
+from seqlearn.evaluation import bio_f_score
 sequence_to_pos_tags = {}
 
 
@@ -89,8 +92,6 @@ def features(sequence, i):
         
         
         
-import os
-from seqlearn.datasets import load_conll
 
 testFile = "test-run-test.txt"
 testFileAnswers = "test-run-test-with-keys.txt"
@@ -105,14 +106,14 @@ else:
 	
 X_train, y_train, lengths_train = load_conll(trainFile, features)  #train.txt
 #print(X_train[1])
-from seqlearn.perceptron import StructuredPerceptron
+
 clf = StructuredPerceptron()
 clf.fit(X_train, y_train, lengths_train)
 
 X_test, y_test, lengths_test = load_conll(conllFile, features) #eval.txt
 X_ans, y_ans, lengths_ans = load_conll(testFileAnswers, features)
 
-from seqlearn.evaluation import bio_f_score
+
 y_pred = clf.predict(X_test, lengths_test)
 
 print(bio_f_score(y_ans, y_pred))
