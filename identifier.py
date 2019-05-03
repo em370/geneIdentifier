@@ -8,6 +8,13 @@ from seqlearn.evaluation import bio_f_score
 sequence_to_pos_tags = {}
 
 
+testFile = "F18-assgn4-test.txt"
+testFileAnswers = "test-run-test-with-keys.txt"
+trainFile = "gene-trainF18.txt"#"train.txt"
+notConll = 1 #set this to 1 if the test file doesn't containt tags
+answers = 0 # set to 1 if answer file exists. 0 to just produce output.txt
+
+
 
 def test2Conll(filename):
 	with open(filename,'r') as input:
@@ -93,10 +100,7 @@ def features(sequence, i):
         
         
 
-testFile = "test-run-test.txt"
-testFileAnswers = "test-run-test-with-keys.txt"
-trainFile = "gene-trainF18.txt"#"train.txt"
-notConll = 1 #set this to 1 if the test file doesn't containt tags
+
 
 if notConll == 1:
 	conllFile = test2Conll(testFile)	
@@ -111,12 +115,14 @@ clf = StructuredPerceptron()
 clf.fit(X_train, y_train, lengths_train)
 
 X_test, y_test, lengths_test = load_conll(conllFile, features) #eval.txt
-X_ans, y_ans, lengths_ans = load_conll(testFileAnswers, features)
+
+
+
 
 
 y_pred = clf.predict(X_test, lengths_test)
 
-print(bio_f_score(y_ans, y_pred))
+#print(bio_f_score(y_ans, y_pred))
 wordsNTags = list(zip(X_test,y_pred));
 #print(list(zip(X_train,y_pred)))
 
@@ -142,9 +148,11 @@ with open('output.txt', 'w') as f:
             f.write("{}	{}	{}\n".format(number,word,tag))
             prevNum = int(number)
 
-print(bio_f_score(y_test, y_pred))
+if answers == 1:
+	X_ans, y_ans, lengths_ans = load_conll(testFileAnswers, features)
+	print(bio_f_score(y_test, y_pred))
 
-os.system("python evalNER.py "+testFileAnswers+ " output.txt")
+	os.system("python evalNER.py "+testFileAnswers+ " output.txt")
 
 
 
